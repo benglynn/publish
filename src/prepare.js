@@ -66,7 +66,7 @@ const validate = (details) => {
     (!Object.keys(tagBranchMap).includes(headTag) && "TAG_PROHIBITED") ||
     (null === branch.match(tagBranchMap[headTag]) && "BRANCH_PROHIBITED") ||
     null;
-  if (invalidError) throw invalidError;
+  if (invalidError) throw new Error(invalidError);
   return details;
 };
 
