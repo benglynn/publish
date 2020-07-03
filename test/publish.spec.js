@@ -8,6 +8,7 @@ const expect = chai.expect;
 
 describe("publish", function () {
   const execDefaults = {
+    "git status --porcelain": "",
     "git describe --tags": "v1.0.0-latest",
     "npm whoami": "npmuser",
     "git rev-parse --abbrev-ref HEAD": "master",
@@ -37,6 +38,13 @@ describe("publish", function () {
   } = {}) => {
     return { readFile: readFileStub(readFiles), exec: execStub(execs) };
   };
+
+  it("rejects when the working directory is not clean", function () {
+    const { readFile, exec } = setup({
+      execs: { ...execDefaults, "git status --porcelain": "?? new" },
+    });
+    return expect(publish({ readFile, exec })).rejectedWith("CLEAN_CHECK_FAIL");
+  });
 
   it("rejetcs when it cannot find `package.json`", function () {
     const readFiles = {
