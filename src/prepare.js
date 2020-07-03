@@ -1,15 +1,7 @@
-import arg from "arg";
 import { promisify } from "util";
 import { join as join_ } from "path";
 import { readFile as readFile_ } from "fs";
 import { exec as exec_ } from "child_process";
-import ora from "ora";
-import { stdout } from "process";
-
-const parseArgs = (args) => {
-  const parsed = arg({ "--ci": Boolean }, { argv: args.slice(2) });
-  return { ci: parsed["--ci"] || false };
-};
 
 const getIsClean = (exec) => {
   return exec("git status --porcelain")
@@ -111,33 +103,6 @@ const prepare = async ({
 } = {}) => {
   const details = await getDetails(ci, readFile, join, cwd, exec);
   return validate(details);
-};
-
-const errorMessages = {
-  CLEAN_CHECK_FAIL: "The woking directory is not clean",
-  NO_VALID_TAG: "Tag HEAD with 'v[major].[minor].[patch]-[dist-tag]'",
-  NO_NPM_USER: "You are not logged in to npm",
-  NO_PACKAGE_JSON: "Couldn't find a package.json file",
-  NO_BRANCH: "Couldn't determine the git branch",
-};
-
-export const cli = (args) => {
-  const toMessage = (error) => {
-    return errorMessages[error.message] || error.toString();
-  };
-  const spinner = ora("Preparing").start();
-  const parsed = parseArgs(args);
-  prepare(parsed)
-    .then((details) => {
-      spinner.succeed(
-        `Publishing ${details.packageName} ${details.headVersion} @${details.headTag}`
-      );
-      console.log(details);
-    })
-    .catch((error) => {
-      spinner.fail(toMessage(error));
-      process.exit(1);
-    });
 };
 
 export default prepare;
