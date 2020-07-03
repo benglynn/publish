@@ -1,0 +1,39 @@
+{
+  "name": "@benglynn/publish",
+  "version": "0.0.1",
+  "description": "Publish npm packages safely",
+  "main": "index.js",
+  "bin": {
+    "publish": "index.js"
+  },
+  "scripts": {
+    "pretest": "npm run lint",
+    "test": "mocha --require esm",
+    "watch-test": "mocha --watch --require esm",
+    "lint": "eslint  --ignore-path .gitignore ."
+  },
+  "keywords": [
+    "npm",
+    "publish"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benglynn/publish.git"
+  },
+  "author": "Ben Glynn",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^7.3.1",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "mocha": "^8.0.1",
+    "prettier": "^2.0.5",
+    "sinon": "^9.0.2"
+  },
+  "dependencies": {
+    "arg": "^4.1.3",
+    "esm": "^3.2.25"
+  }
+}
