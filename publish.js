@@ -3,7 +3,6 @@ import { promisify } from "util";
 import { join as join_ } from "path";
 import { readFile as readFile_ } from "fs";
 import { exec as exec_ } from "child_process";
-import { stdout } from "process";
 
 const parseArgs = (args) => {
   const parsed = arg({ "--ci": Boolean }, { argv: args.slice(2) });
@@ -59,15 +58,15 @@ const getBranch = async (exec) => {
     });
 };
 
-const getTagBranchMap_ = (npmUser) => ({
-  latest: "master",
-  beta: "develop",
-  [npmUser]: /.*/,
-});
-
-const validate = (getTagBranchMap, details) => {
-  const { packageVersion, headTag, headVersion, npmUser, branch } = details;
-  const tagBranchMap = getTagBranchMap(npmUser);
+const validate = (details) => {
+  const { ci, packageVersion, headTag, headVersion, npmUser, branch } = details;
+  const npmUserMap = ci ? null : { [npmUser]: /.*/ };
+  const tagBranchMap = {
+    latest: "master",
+    beta: "develop",
+    next: "develop",
+    ...npmUserMap,
+  };
   const invalidError =
     (packageVersion !== headVersion && "VERSION_MISMATCH") ||
     (!Object.keys(tagBranchMap).includes(headTag) && "TAG_PROHIBITED") ||
@@ -77,21 +76,21 @@ const validate = (getTagBranchMap, details) => {
   return details;
 };
 
-const getDetails = async (readFile, join, cwd, exec) => {
+const getDetails = async (ci, readFile, join, cwd, exec) => {
   const [
-    isClean,
     { packageName, packageVersion },
     { headTag, headVersion },
     npmUser,
     branch,
   ] = await Promise.all([
-    getIsClean(exec),
     getPackageJson(readFile, join, cwd),
     getHead(exec),
-    getNpmUser(exec),
+    ci ? null : getNpmUser(exec),
     getBranch(exec),
+    getIsClean(exec),
   ]);
   return {
+    ci,
     packageName,
     packageVersion,
     headTag,
@@ -107,17 +106,13 @@ const publish = async ({
   readFile = promisify(readFile_),
   exec = promisify(exec_),
   cwd = process.cwd(),
-  getTagBranchMap = getTagBranchMap_,
 } = {}) => {
-  const details = validate(
-    getTagBranchMap,
-    await getDetails(readFile, join, cwd, exec)
-  );
-  return { ci, ...details };
+  const details = await getDetails(ci, readFile, join, cwd, exec);
+  validate(details);
+  return details;
 };
 
 export const cli = (args) => {
-  console.log(process.cwd());
   const parsed = parseArgs(args);
   publish(parsed)
     .then((result) => console.log(result))

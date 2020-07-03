@@ -77,7 +77,7 @@ describe("publish", function () {
     return expect(publish({ readFile, exec })).rejectedWith("VERSION_MISMATCH");
   });
 
-  it("fails when not authenticated with npm", function () {
+  it("fails when not authenticated with npm in normal mode", function () {
     const { readFile, exec } = setup({
       execs: {
         ...execDefaults,
@@ -85,6 +85,16 @@ describe("publish", function () {
       },
     });
     return expect(publish({ readFile, exec })).rejectedWith("NO_NPM_USER");
+  });
+
+  it("does not find npm authenticated user in ci mode", function () {
+    const { readFile, exec } = setup({
+      execs: {
+        ...execDefaults,
+        "npm whoami": new Error("ENEEDAUTH"),
+      },
+    });
+    return expect(publish({ ci: true, readFile, exec })).fulfilled;
   });
 
   it("fails when unable to determine git branch", function () {
