@@ -23,7 +23,7 @@ publish --ci
 Work faster and make fewer mistakes. Publish is fussy. It won't put your work on
 npm unless everything looks right:
 
-- The git working directory is clean
+- The git working directory is clean (but see [#5][])
 - The current working directory has a `package.json` (run publish in the root of
   the package you're publishing)
 - the HEAD of the current branch is described by a lightweight tag of the
@@ -67,3 +67,4 @@ For publishing to succeed in CI, be sure you export an `NPM_TOKEN` (more on [npm
 [npm tokens]: https://docs.npmjs.com/about-authentication-tokens
 
 [#1]: https://github.com/benglynn/publish/issues/1
+[#5]: https://github.com/benglynn/publish/issues/5
