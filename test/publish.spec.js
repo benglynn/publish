@@ -1,4 +1,4 @@
-import publish from "../publish.js";
+import prepare from "../src/prepare.js";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { basename } from "path";
@@ -6,7 +6,7 @@ import { basename } from "path";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-describe("publish", function () {
+describe("prepare", function () {
   const execDefaults = {
     "git status --porcelain": "",
     "git describe --tags": "v1.0.0-latest",
@@ -43,7 +43,7 @@ describe("publish", function () {
     const { readFile, exec } = setup({
       execs: { ...execDefaults, "git status --porcelain": "?? new" },
     });
-    return expect(publish({ readFile, exec })).rejectedWith("CLEAN_CHECK_FAIL");
+    return expect(prepare({ readFile, exec })).rejectedWith("CLEAN_CHECK_FAIL");
   });
 
   it("rejetcs when it cannot find `package.json`", function () {
@@ -52,7 +52,7 @@ describe("publish", function () {
       "package.json": new Error("ENOENT"),
     };
     const { readFile, exec } = setup({ readFiles });
-    return expect(publish({ readFile, exec })).rejectedWith("NO_PACKAGE_JSON");
+    return expect(prepare({ readFile, exec })).rejectedWith("NO_PACKAGE_JSON");
   });
 
   it("rejects when there is no git tag for HEAD", function () {
@@ -60,31 +60,41 @@ describe("publish", function () {
     const { readFile, exec } = setup({
       execs: { ...execDefaults, "git describe --tags": error },
     });
-    return expect(publish({ readFile, exec })).rejectedWith("NO_VALID_TAG");
+    return expect(prepare({ readFile, exec })).rejectedWith("NO_VALID_TAG");
   });
 
   it("rejects when the git tag for HEAD is not the right pattern", function () {
     const { readFile, exec } = setup({
       execs: { ...execDefaults, "git describe --tags": "invalid-tag-123" },
     });
-    return expect(publish({ readFile, exec })).rejectedWith("NO_VALID_TAG");
+    return expect(prepare({ readFile, exec })).rejectedWith("NO_VALID_TAG");
   });
 
   it("rejects when versions in package and tag mismatch", function () {
     const { readFile, exec } = setup({
       execs: { ...execDefaults, "git describe --tags": "v1.0.1-latest" },
     });
-    return expect(publish({ readFile, exec })).rejectedWith("VERSION_MISMATCH");
+    return expect(prepare({ readFile, exec })).rejectedWith("VERSION_MISMATCH");
   });
 
-  it("fails when not authenticated with npm", function () {
+  it("fails when not authenticated with npm in normal mode", function () {
     const { readFile, exec } = setup({
       execs: {
         ...execDefaults,
         "npm whoami": new Error("ENEEDAUTH"),
       },
     });
-    return expect(publish({ readFile, exec })).rejectedWith("NO_NPM_USER");
+    return expect(prepare({ readFile, exec })).rejectedWith("NO_NPM_USER");
+  });
+
+  it("does not find npm authenticated user in ci mode", function () {
+    const { readFile, exec } = setup({
+      execs: {
+        ...execDefaults,
+        "npm whoami": new Error("ENEEDAUTH"),
+      },
+    });
+    return expect(prepare({ ci: true, readFile, exec })).fulfilled;
   });
 
   it("fails when unable to determine git branch", function () {
@@ -94,12 +104,12 @@ describe("publish", function () {
         "git rev-parse --abbrev-ref HEAD": new Error("Error: Command failed"),
       },
     });
-    return expect(publish({ readFile, exec })).rejectedWith("NO_BRANCH");
+    return expect(prepare({ readFile, exec })).rejectedWith("NO_BRANCH");
   });
 
   it("permits publishing @latest from master", function () {
     const { readFile, exec } = setup();
-    return expect(publish({ readFile, exec })).fulfilled;
+    return expect(prepare({ readFile, exec })).fulfilled;
   });
 
   it("permits publishing @beta from develop", function () {
@@ -110,21 +120,21 @@ describe("publish", function () {
         "git rev-parse --abbrev-ref HEAD": "develop",
       },
     });
-    return expect(publish({ readFile, exec })).fulfilled;
+    return expect(prepare({ readFile, exec })).fulfilled;
   });
 
   it("permits publishing when the tag is npm username", function () {
     const { readFile, exec } = setup({
       execs: { ...execDefaults, "git describe --tags": "v1.0.0-npmuser" },
     });
-    return expect(publish({ readFile, exec })).fulfilled;
+    return expect(prepare({ readFile, exec })).fulfilled;
   });
 
   it("prohibits publishing @latest from develop", function () {
     const { readFile, exec } = setup({
       execs: { ...execDefaults, "git rev-parse --abbrev-ref HEAD": "develop" },
     });
-    return expect(publish({ readFile, exec })).rejectedWith(
+    return expect(prepare({ readFile, exec })).rejectedWith(
       "BRANCH_PROHIBITED"
     );
   });
@@ -133,7 +143,7 @@ describe("publish", function () {
     const { readFile, exec } = setup({
       execs: { ...execDefaults, "git describe --tags": "v1.0.0-beta" },
     });
-    return expect(publish({ readFile, exec })).rejectedWith(
+    return expect(prepare({ readFile, exec })).rejectedWith(
       "BRANCH_PROHIBITED"
     );
   });
@@ -142,6 +152,6 @@ describe("publish", function () {
     const { readFile, exec } = setup({
       execs: { ...execDefaults, "git describe --tags": "v1.0.0-banana" },
     });
-    return expect(publish({ readFile, exec })).rejectedWith("TAG_PROHIBITED");
+    return expect(prepare({ readFile, exec })).rejectedWith("TAG_PROHIBITED");
   });
 });

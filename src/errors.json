@@ -1,0 +1,7 @@
+{
+    "CLEAN_CHECK_FAIL": "The woking directory is not clean",
+    "NO_VALID_TAG": "HEAD is not tagged with 'v[major].[minor].[patch]-[dist-tag]'",
+    "NO_NPM_USER": "You are not logged in to npm",
+    "NO_PACKAGE_JSON": "Could not find a package.json file",
+    "NO_BRANCH": "Could not determine the git branch"
+  }
