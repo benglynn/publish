@@ -1,3 +1,5 @@
+![Test](https://github.com/benglynn/publish/workflows/Test/badge.svg)
+
 # publish (beta)
 
  Safe, consistent npm package publishing, locally or from CI.
