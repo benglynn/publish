@@ -3,10 +3,22 @@ import { promisify } from "util";
 import { join as join_ } from "path";
 import { readFile as readFile_ } from "fs";
 import { exec as exec_ } from "child_process";
+import { stdout } from "process";
 
 const parseArgs = (args) => {
   const parsed = arg({ "--ci": Boolean }, { argv: args.slice(2) });
   return { ci: parsed["--ci"] || false };
+};
+
+const getIsClean = (exec) => {
+  return exec("git status --porcelain")
+    .then(({ stdout }) => {
+      if (stdout !== "") throw new Error("not clean");
+      return true;
+    })
+    .catch((e) => {
+      throw new Error("CLEAN_CHECK_FAIL");
+    });
 };
 
 const getHead = (exec) => {
@@ -67,11 +79,13 @@ const validate = (getTagBranchMap, details) => {
 
 const getDetails = async (readFile, join, cwd, exec) => {
   const [
+    isClean,
     { packageName, packageVersion },
     { headTag, headVersion },
     npmUser,
     branch,
   ] = await Promise.all([
+    getIsClean(exec),
     getPackageJson(readFile, join, cwd),
     getHead(exec),
     getNpmUser(exec),
