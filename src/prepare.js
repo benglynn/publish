@@ -53,6 +53,7 @@ const getBranch = async (exec) => {
 };
 
 const validate = (details) => {
+  console.log(details);
   const { ci, packageVersion, headTag, headVersion, npmUser, branch } = details;
   const npmUserMap = ci ? null : { [npmUser]: /.*/ };
   const tagBranchMap = {
