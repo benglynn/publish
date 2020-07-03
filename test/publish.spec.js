@@ -6,7 +6,7 @@ import { basename } from "path";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-describe("publish", function () {
+describe("prepare", function () {
   const execDefaults = {
     "git status --porcelain": "",
     "git describe --tags": "v1.0.0-latest",
