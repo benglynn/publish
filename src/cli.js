@@ -10,14 +10,17 @@ const parseArgs = (args) => {
   return { ci: parsed["--ci"] || false };
 };
 
+const validMessage = ({ packageName, headVersion, headTag }) =>
+  `Okay to publish ${packageName} v${headVersion} @${headTag}`;
+
 const cli = (rawArgs) => {
   const spinner = ora("Preparing").start();
   const args = parseArgs(rawArgs);
   prepare(args)
     .then((details) => {
-      const summary = `${details.packageName} ${details.headVersion} @${details.headTag}`;
-      spinner.succeed(`Publishing ${summary}`);
-      const publish = spawn("npm", ["publish", "--dry-run"]);
+      spinner.succeed(validMessage(details));
+      const options = ["publish", `--tag ${details.headTag}`, "--dry-run"];
+      const publish = spawn("npm", options);
       publish.stdout.pipe(process.stdout);
       publish.stderr.pipe(process.stderr);
     })
