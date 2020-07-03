@@ -3,7 +3,7 @@ import ora from "ora";
 import errors from "./errors.json";
 import prepare from "./prepare";
 import { spawn } from "child_process";
-import { promisify } from "util";
+import inquirer from "inquirer";
 
 const parseArgs = (args) => {
   const parsed = arg({ "--ci": Boolean }, { argv: args.slice(2) });
@@ -11,7 +11,15 @@ const parseArgs = (args) => {
 };
 
 const getOptions = async (details) => {
-  return ["publish", `--tag ${details.headTag}`, "--dry-run"];
+  const ciOptions = ["publish", `--tag ${details.headTag}`, "--dry-run"];
+  const askForOtp = () => {
+    const message = "What is your npm OTP?";
+    const prompt = { type: "number", name: "otp", message };
+    return inquirer.prompt([prompt]);
+  };
+  return details.ci
+    ? ciOptions
+    : askForOtp().then((answers) => ciOptions.concat(`--otp ${answers.otp}`));
 };
 
 const cli = (rawArgs) => {
@@ -20,12 +28,11 @@ const cli = (rawArgs) => {
   prepare(args)
     .then((details) => {
       const { packageName, headVersion, headTag } = details;
-      spinner.succeed(
-        `Okay to publish ${packageName} v${headVersion} @${headTag}`
-      );
+      spinner.succeed(`Publish ${packageName} v${headVersion} @${headTag}`);
       return getOptions(details);
     })
     .then((options) => {
+      console.log(options);
       const publish = spawn("npm", options);
       publish.stdout.pipe(process.stdout);
       publish.stderr.pipe(process.stderr);

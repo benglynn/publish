@@ -3,5 +3,6 @@
     "NO_VALID_TAG": "HEAD is not tagged with 'v[major].[minor].[patch]-[dist-tag]'",
     "NO_NPM_USER": "You are not logged in to npm",
     "NO_PACKAGE_JSON": "Could not find a package.json file",
-    "NO_BRANCH": "Could not determine the git branch"
+    "NO_BRANCH": "Could not determine the git branch",
+    "TAG_PROHIBITED": "This tag should not be published from this branch"
   }
