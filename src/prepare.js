@@ -36,18 +36,19 @@ const getNpmUser = async (exec) => {
 };
 
 const getPackageJson = async (readFile, join, cwd) => {
-  const versionPattern = /^(?<version>\d+\.\d+\.\d+)\-(?<tag>[a-z0-9]+)$/;
   try {
     const pkg = JSON.parse(await readFile(join(cwd, "package.json"), "utf8"));
-    const match = pkg.version.match(versionPattern);
-    if (!match) throw new Error("malformed");
+    if (!/^\d+\.\d+\.\d+$/.test(pkg.version)) throw new Error("malformed");
+    const pkgTag = (pkg.publishConfig && pkg.publishConfig.tag) || null;
+    if (pkgTag === null) throw new Error("no tag");
     return {
+      pkgTag,
       pkgName: pkg.name,
-      pkgVersion: match.groups.version,
-      pkgTag: match.groups.tag,
+      pkgVersion: pkg.version,
     };
   } catch (e) {
     if (e.message === "malformed") throw new Error("PACKAGE_VERSION_MALFORMED");
+    if (e.message === "no tag") throw new Error("NO_PACKAGE_TAG");
     throw new Error("NO_PACKAGE_JSON");
   }
 };

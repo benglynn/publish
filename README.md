@@ -25,14 +25,14 @@ if:
 
 - The working directory is a clean git working directory (if your local,
   remember to push! [#5][])
-- The working directory has a `package.json` (run publish from the the root of
+- The working directory has a `package.json` (publish from the the root of
   the package you're publishing)
 - The package.json version is in the form `[major].[minor].[patch]`
-- The package.json has a `publishConfig` with a permitted `tag` (more below)
-  property, such as `latest`
+- The package.json has a `publishConfig` with a `tag` that is a permitted
+  dist-tag (see below)
 - the HEAD of the current branch is described by a lightweight tag of the form
   `v[major].[minor].[patch]-[dist-tag]` such as `v1.2.3-latest` or `v1.2.3-beta`
-- The HEAD tag version and `package.json` version match
+- The tag version and dist-tag match the `package.json` version and dist-tag
 - The branch and dist-tag mapping is permitted (more below)
 
 ## npm version
