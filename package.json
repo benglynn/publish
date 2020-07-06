@@ -20,6 +20,9 @@
     "type": "git",
     "url": "git+https://github.com/benglynn/publish.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "Ben Glynn",
   "license": "UNLICENSED",
   "devDependencies": {
