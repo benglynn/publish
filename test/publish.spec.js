@@ -156,9 +156,7 @@ describe("prepare", function () {
       });
       const readFiles = { ...readFileDefaults, "package.json": json };
       const { readFile, exec } = setup({ readFiles });
-      return expect(prepare({ readFile, exec })).rejectedWith(
-        "VERSION_MISMATCH"
-      );
+      return expect(prepare({ readFile, exec })).rejectedWith("TAG_MISMATCH");
     });
   });
 

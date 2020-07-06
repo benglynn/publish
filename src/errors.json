@@ -6,5 +6,7 @@
     "NO_PACKAGE_JSON": "Could not find a package.json file",
     "NO_PACKAGE_TAG": "There is no publishConfig tag in package.json",
     "NO_BRANCH": "Could not determine the git branch",
-    "TAG_PROHIBITED": "This tag should not be published from this branch"
+    "TAG_PROHIBITED": "This tag should not be published from this branch",
+    "VERSION_MISMATCH": "The version in package.json and the git tag do not match",
+    "TAG_MISMATCH": "The dist-tag in package.json and in the git tag do not match"
   }

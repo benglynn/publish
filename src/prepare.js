@@ -80,7 +80,7 @@ const validate = (details) => {
   };
   const invalidError =
     (pkgVersion !== headVersion && "VERSION_MISMATCH") ||
-    (pkgTag !== headTag && "VERSION_MISMATCH") ||
+    (pkgTag !== headTag && "TAG_MISMATCH") ||
     (!Object.keys(tagBranchMap).includes(headTag) && "TAG_PROHIBITED") ||
     (null === branch.match(tagBranchMap[headTag]) && "BRANCH_PROHIBITED") ||
     null;
