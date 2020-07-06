@@ -17,10 +17,9 @@ const getIsClean = (exec) => {
 const getHead = (exec) => {
   return exec("git describe --tags")
     .then(({ stdout }) => {
-      const pattern = /^v(?<version>\d+\.\d+\.\d+)\-(?<tag>[a-z0-9]+)$/;
-      const match = stdout.trim().match(pattern);
+      const match = stdout.trim().match(/^v(?<version>\d+\.\d+\.\d+)$/);
       if (!match) throw new Error("no match");
-      return { headVersion: match.groups.version, headTag: match.groups.tag };
+      return { headVersion: match.groups.version };
     })
     .catch((e) => {
       throw new Error("NO_VALID_TAG");
@@ -62,15 +61,7 @@ const getBranch = async (exec) => {
 };
 
 const validate = (details) => {
-  const {
-    ci,
-    pkgVersion,
-    headTag,
-    headVersion,
-    pkgTag,
-    npmUser,
-    branch,
-  } = details;
+  const { ci, pkgVersion, headVersion, pkgTag, npmUser, branch } = details;
   const npmUserMap = ci ? null : { [npmUser]: /.*/ };
   const tagBranchMap = {
     latest: "master",
@@ -80,9 +71,8 @@ const validate = (details) => {
   };
   const invalidError =
     (pkgVersion !== headVersion && "VERSION_MISMATCH") ||
-    (pkgTag !== headTag && "TAG_MISMATCH") ||
-    (!Object.keys(tagBranchMap).includes(headTag) && "TAG_PROHIBITED") ||
-    (null === branch.match(tagBranchMap[headTag]) && "BRANCH_PROHIBITED") ||
+    (!Object.keys(tagBranchMap).includes(pkgTag) && "TAG_PROHIBITED") ||
+    (null === branch.match(tagBranchMap[pkgTag]) && "BRANCH_PROHIBITED") ||
     null;
   if (invalidError) throw new Error(invalidError);
   return details;
@@ -91,7 +81,7 @@ const validate = (details) => {
 const getDetails = async (ci, readFile, join, cwd, exec) => {
   const [
     { pkgName, pkgVersion, pkgTag },
-    { headTag, headVersion },
+    { headVersion },
     npmUser,
     branch,
   ] = await Promise.all([
@@ -101,16 +91,7 @@ const getDetails = async (ci, readFile, join, cwd, exec) => {
     getBranch(exec),
     getIsClean(exec),
   ]);
-  return {
-    ci,
-    pkgName,
-    pkgVersion,
-    pkgTag,
-    headTag,
-    headVersion,
-    npmUser,
-    branch,
-  };
+  return { ci, pkgName, pkgVersion, pkgTag, headVersion, npmUser, branch };
 };
 
 const prepare = async ({

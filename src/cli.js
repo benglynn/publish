@@ -14,8 +14,8 @@ const cli = (rawArgs) => {
   const args = parseArgs(rawArgs);
   prepare(args)
     .then((details) => {
-      const { packageName, headVersion, headTag } = details;
-      spinner.succeed(`Publish ${packageName} v${headVersion} @${headTag}`);
+      const { packageName, headVersion, pkgTag } = details;
+      spinner.succeed(`Publish ${packageName} v${headVersion} @${pkgTag}`);
       spawn("npm", ["publish"], { stdio: "inherit" });
     })
     .catch((error) => {

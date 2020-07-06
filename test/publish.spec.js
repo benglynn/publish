@@ -8,7 +8,7 @@ const expect = chai.expect;
 
 const execDefaults = {
   "git status --porcelain": "",
-  "git describe --tags": "v1.0.0-latest",
+  "git describe --tags": "v1.0.0",
   "npm whoami": "npmuser",
   "git rev-parse --abbrev-ref HEAD": "master",
 };
@@ -81,7 +81,7 @@ describe("prepare", function () {
       });
       const { readFile, exec } = setup({
         readFiles: { ...readFileDefaults, "package.json": pkg },
-        execs: { ...execDefaults, "git describe --tags": "v1.0.0-banana" },
+        execs: { ...execDefaults, "git describe --tags": "v1.0.0" },
       });
       return expect(prepare({ readFile, exec })).rejectedWith("TAG_PROHIBITED");
     });
@@ -141,22 +141,11 @@ describe("prepare", function () {
   describe("cross-checks", function () {
     it("rejects when versions in package and tag mismatch", function () {
       const { readFile, exec } = setup({
-        execs: { ...execDefaults, "git describe --tags": "v1.0.1-latest" },
+        execs: { ...execDefaults, "git describe --tags": "v1.0.1" },
       });
       return expect(prepare({ readFile, exec })).rejectedWith(
         "VERSION_MISMATCH"
       );
-    });
-
-    it("rejects when ref-tag in package and tag mismatch", function () {
-      const json = JSON.stringify({
-        name: "pkg",
-        version: "1.0.0",
-        publishConfig: { tag: "banana" },
-      });
-      const readFiles = { ...readFileDefaults, "package.json": json };
-      const { readFile, exec } = setup({ readFiles });
-      return expect(prepare({ readFile, exec })).rejectedWith("TAG_MISMATCH");
     });
   });
 
@@ -175,7 +164,7 @@ describe("prepare", function () {
         readFiles: { ...readFileDefaults, "package.json": pkg },
         execs: {
           ...execDefaults,
-          "git describe --tags": "v1.0.0-beta",
+          "git describe --tags": "v1.0.0",
           "git rev-parse --abbrev-ref HEAD": "develop",
         },
       });
@@ -190,7 +179,6 @@ describe("prepare", function () {
       });
       const { readFile, exec } = setup({
         readFiles: { ...readFileDefaults, "package.json": pkg },
-        execs: { ...execDefaults, "git describe --tags": "v1.0.0-npmuser" },
       });
       return expect(prepare({ readFile, exec })).fulfilled;
     });
@@ -214,7 +202,6 @@ describe("prepare", function () {
       });
       const { readFile, exec } = setup({
         readFiles: { ...readFileDefaults, "package.json": pkg },
-        execs: { ...execDefaults, "git describe --tags": "v1.0.0-beta" },
       });
       return expect(prepare({ readFile, exec })).rejectedWith(
         "BRANCH_PROHIBITED"
