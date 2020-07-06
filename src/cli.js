@@ -11,7 +11,7 @@ const parseArgs = (args) => {
 };
 
 const getOptions = async (details) => {
-  const ciOptions = ["publish", `--tag ${details.headTag}`, "--dry-run"];
+  const ciOptions = ["publish", `--tag ${details.headTag}`];
   const askForOtp = () => {
     const message = "What is your npm OTP?";
     const prompt = { type: "number", name: "otp", message };
@@ -32,7 +32,6 @@ const cli = (rawArgs) => {
       return getOptions(details);
     })
     .then((options) => {
-      console.log(options);
       const publish = spawn("npm", options);
       publish.stdout.pipe(process.stdout);
       publish.stderr.pipe(process.stderr);

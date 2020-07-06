@@ -18,17 +18,20 @@ publish
 publish --ci
 ```
 
-## Why do I need this?
+## Why?
 
 Work faster and make fewer mistakes. Publish is fussy. It won't put your work on
 npm unless everything looks right:
 
-- The git working directory is clean (but see [#5][])
+- The git working directory is clean ([#5][])
 - The current working directory has a `package.json` (run publish in the root of
   the package you're publishing)
+- The package.json version is in the form `[major].[minor].[patch]-[dist-tag]`,
+  such as `1.2.3-latest` or `1.2.3-beta` (note the dist-tag *must* be there,
+  even if it's `latest`)
 - the HEAD of the current branch is described by a lightweight tag of the
-  form `v[major].[minor].[patch]-[dist-tag].` such as `v1.2.3-latest` or
-  `v1.2.3-beta`
+  form `v[major].[minor].[patch]-[dist-tag]` such as `v1.2.3-latest` or
+  `v1.2.3-beta` (note the `npm version` friendly 'v' at the start)
 - The HEAD tag version and `package.json` version match
 - The branch and dist-tag are permitted (more below)
 

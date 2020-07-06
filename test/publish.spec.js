@@ -15,7 +15,7 @@ describe("prepare", function () {
   };
 
   const readFileDefaults = {
-    "package.json": JSON.stringify({ version: "1.0.0" }),
+    "package.json": JSON.stringify({ version: "1.0.0-latest" }),
   };
 
   const readFileStub = (readFiles) => (file) => {
@@ -55,6 +55,15 @@ describe("prepare", function () {
     return expect(prepare({ readFile, exec })).rejectedWith("NO_PACKAGE_JSON");
   });
 
+  it("rejects when package version is malformed", function () {
+    const json = JSON.stringify({ name: "@benglynn/pkg", version: "1.0.0" });
+    const readFiles = { ...readFileDefaults, "package.json": json };
+    const { readFile, exec } = setup({ readFiles });
+    return expect(prepare({ readFile, exec })).rejectedWith(
+      "PACKAGE_VERSION_MALFORMED"
+    );
+  });
+
   it("rejects when there is no git tag for HEAD", function () {
     const error = new Error("fatal: No names found, cannot describe anything.");
     const { readFile, exec } = setup({
@@ -74,6 +83,13 @@ describe("prepare", function () {
     const { readFile, exec } = setup({
       execs: { ...execDefaults, "git describe --tags": "v1.0.1-latest" },
     });
+    return expect(prepare({ readFile, exec })).rejectedWith("VERSION_MISMATCH");
+  });
+
+  it("rejects when ref-tag in package and tag mismatch", function () {
+    const json = JSON.stringify({ name: "pkg", version: "1.0.0-banana" });
+    const readFiles = { ...readFileDefaults, "package.json": json };
+    const { readFile, exec } = setup({ readFiles });
     return expect(prepare({ readFile, exec })).rejectedWith("VERSION_MISMATCH");
   });
 
@@ -113,7 +129,9 @@ describe("prepare", function () {
   });
 
   it("permits publishing @beta from develop", function () {
+    const pkg = JSON.stringify({ name: "pkgname", version: "1.0.0-beta" });
     const { readFile, exec } = setup({
+      readFiles: { ...readFileDefaults, "package.json": pkg },
       execs: {
         ...execDefaults,
         "git describe --tags": "v1.0.0-beta",
@@ -124,7 +142,9 @@ describe("prepare", function () {
   });
 
   it("permits publishing when the tag is npm username", function () {
+    const pkg = JSON.stringify({ name: "pkgname", version: "1.0.0-npmuser" });
     const { readFile, exec } = setup({
+      readFiles: { ...readFileDefaults, "package.json": pkg },
       execs: { ...execDefaults, "git describe --tags": "v1.0.0-npmuser" },
     });
     return expect(prepare({ readFile, exec })).fulfilled;
@@ -140,7 +160,9 @@ describe("prepare", function () {
   });
 
   it("prohibits publishing beta from master", function () {
+    const pkg = JSON.stringify({ name: "pkgname", version: "1.0.0-beta" });
     const { readFile, exec } = setup({
+      readFiles: { ...readFileDefaults, "package.json": pkg },
       execs: { ...execDefaults, "git describe --tags": "v1.0.0-beta" },
     });
     return expect(prepare({ readFile, exec })).rejectedWith(
@@ -149,7 +171,9 @@ describe("prepare", function () {
   });
 
   it("prohibits publishing when tag is not master, develop or npm username", function () {
+    const pkg = JSON.stringify({ name: "pkgname", version: "1.0.0-banana" });
     const { readFile, exec } = setup({
+      readFiles: { ...readFileDefaults, "package.json": pkg },
       execs: { ...execDefaults, "git describe --tags": "v1.0.0-banana" },
     });
     return expect(prepare({ readFile, exec })).rejectedWith("TAG_PROHIBITED");

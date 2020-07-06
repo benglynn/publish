@@ -36,10 +36,18 @@ const getNpmUser = async (exec) => {
 };
 
 const getPackageJson = async (readFile, join, cwd) => {
+  const versionPattern = /^(?<version>\d+\.\d+\.\d+)\-(?<tag>[a-z0-9]+)$/;
   try {
-    const json = JSON.parse(await readFile(join(cwd, "package.json"), "utf8"));
-    return { packageName: json.name, packageVersion: json.version };
+    const pkg = JSON.parse(await readFile(join(cwd, "package.json"), "utf8"));
+    const match = pkg.version.match(versionPattern);
+    if (!match) throw new Error("malformed");
+    return {
+      pkgName: pkg.name,
+      pkgVersion: match.groups.version,
+      pkgTag: match.groups.tag,
+    };
   } catch (e) {
+    if (e.message === "malformed") throw new Error("PACKAGE_VERSION_MALFORMED");
     throw new Error("NO_PACKAGE_JSON");
   }
 };
@@ -53,7 +61,15 @@ const getBranch = async (exec) => {
 };
 
 const validate = (details) => {
-  const { ci, packageVersion, headTag, headVersion, npmUser, branch } = details;
+  const {
+    ci,
+    pkgVersion,
+    headTag,
+    headVersion,
+    pkgTag,
+    npmUser,
+    branch,
+  } = details;
   const npmUserMap = ci ? null : { [npmUser]: /.*/ };
   const tagBranchMap = {
     latest: "master",
@@ -62,7 +78,8 @@ const validate = (details) => {
     ...npmUserMap,
   };
   const invalidError =
-    (packageVersion !== headVersion && "VERSION_MISMATCH") ||
+    (pkgVersion !== headVersion && "VERSION_MISMATCH") ||
+    (pkgTag !== headTag && "VERSION_MISMATCH") ||
     (!Object.keys(tagBranchMap).includes(headTag) && "TAG_PROHIBITED") ||
     (null === branch.match(tagBranchMap[headTag]) && "BRANCH_PROHIBITED") ||
     null;
@@ -72,7 +89,7 @@ const validate = (details) => {
 
 const getDetails = async (ci, readFile, join, cwd, exec) => {
   const [
-    { packageName, packageVersion },
+    { pkgName, pkgVersion, pkgTag },
     { headTag, headVersion },
     npmUser,
     branch,
@@ -85,8 +102,9 @@ const getDetails = async (ci, readFile, join, cwd, exec) => {
   ]);
   return {
     ci,
-    packageName,
-    packageVersion,
+    pkgName,
+    pkgVersion,
+    pkgTag,
     headTag,
     headVersion,
     npmUser,
