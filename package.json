@@ -1,6 +1,6 @@
 {
   "name": "@benglynn/publish",
-  "version": "0.0.1-benglynn",
+  "version": "0.0.1",
   "description": "Publish npm packages safely",
   "main": "index.js",
   "bin": {
@@ -19,6 +19,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/benglynn/publish.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "benglynn"
   },
   "author": "Ben Glynn",
   "license": "UNLICENSED",

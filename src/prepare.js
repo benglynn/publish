@@ -17,10 +17,9 @@ const getIsClean = (exec) => {
 const getHead = (exec) => {
   return exec("git describe --tags")
     .then(({ stdout }) => {
-      const pattern = /^v(?<version>\d+\.\d+\.\d+)\-(?<tag>[a-z0-9]+)$/;
-      const match = stdout.trim().match(pattern);
+      const match = stdout.trim().match(/^v(?<version>\d+\.\d+\.\d+)$/);
       if (!match) throw new Error("no match");
-      return { headVersion: match.groups.version, headTag: match.groups.tag };
+      return { headVersion: match.groups.version };
     })
     .catch((e) => {
       throw new Error("NO_VALID_TAG");
@@ -36,18 +35,19 @@ const getNpmUser = async (exec) => {
 };
 
 const getPackageJson = async (readFile, join, cwd) => {
-  const versionPattern = /^(?<version>\d+\.\d+\.\d+)\-(?<tag>[a-z0-9]+)$/;
   try {
     const pkg = JSON.parse(await readFile(join(cwd, "package.json"), "utf8"));
-    const match = pkg.version.match(versionPattern);
-    if (!match) throw new Error("malformed");
+    if (!/^\d+\.\d+\.\d+$/.test(pkg.version)) throw new Error("malformed");
+    const pkgTag = (pkg.publishConfig && pkg.publishConfig.tag) || null;
+    if (pkgTag === null) throw new Error("no tag");
     return {
+      pkgTag,
       pkgName: pkg.name,
-      pkgVersion: match.groups.version,
-      pkgTag: match.groups.tag,
+      pkgVersion: pkg.version,
     };
   } catch (e) {
     if (e.message === "malformed") throw new Error("PACKAGE_VERSION_MALFORMED");
+    if (e.message === "no tag") throw new Error("NO_PACKAGE_TAG");
     throw new Error("NO_PACKAGE_JSON");
   }
 };
@@ -61,15 +61,7 @@ const getBranch = async (exec) => {
 };
 
 const validate = (details) => {
-  const {
-    ci,
-    pkgVersion,
-    headTag,
-    headVersion,
-    pkgTag,
-    npmUser,
-    branch,
-  } = details;
+  const { ci, pkgVersion, headVersion, pkgTag, npmUser, branch } = details;
   const npmUserMap = ci ? null : { [npmUser]: /.*/ };
   const tagBranchMap = {
     latest: "master",
@@ -79,9 +71,8 @@ const validate = (details) => {
   };
   const invalidError =
     (pkgVersion !== headVersion && "VERSION_MISMATCH") ||
-    (pkgTag !== headTag && "VERSION_MISMATCH") ||
-    (!Object.keys(tagBranchMap).includes(headTag) && "TAG_PROHIBITED") ||
-    (null === branch.match(tagBranchMap[headTag]) && "BRANCH_PROHIBITED") ||
+    (!Object.keys(tagBranchMap).includes(pkgTag) && "TAG_PROHIBITED") ||
+    (null === branch.match(tagBranchMap[pkgTag]) && "BRANCH_PROHIBITED") ||
     null;
   if (invalidError) throw new Error(invalidError);
   return details;
@@ -90,7 +81,7 @@ const validate = (details) => {
 const getDetails = async (ci, readFile, join, cwd, exec) => {
   const [
     { pkgName, pkgVersion, pkgTag },
-    { headTag, headVersion },
+    { headVersion },
     npmUser,
     branch,
   ] = await Promise.all([
@@ -100,16 +91,7 @@ const getDetails = async (ci, readFile, join, cwd, exec) => {
     getBranch(exec),
     getIsClean(exec),
   ]);
-  return {
-    ci,
-    pkgName,
-    pkgVersion,
-    pkgTag,
-    headTag,
-    headVersion,
-    npmUser,
-    branch,
-  };
+  return { ci, pkgName, pkgVersion, pkgTag, headVersion, npmUser, branch };
 };
 
 const prepare = async ({

@@ -1,8 +1,8 @@
 ![Test](https://github.com/benglynn/publish/workflows/Test/badge.svg)
 
-# publish (beta)
+# publish
 
- Safe, consistent npm package publishing, locally or from CI.
+Safety checks that save time and help your team publish to npm consistently.
 
 ```bash
 # install globally
@@ -11,58 +11,62 @@ npm install -g @benglynn/publish
 # or as part of your package
 npm install --save-dev @benglynn/publish
 
-# publish locally
+# safely publish locally
 publish
 
-# or set up CI to run this when a tag is pushed
+# or safely publish from CI when a tag is pushed
 publish --ci
 ```
 
-## Why?
+## What does publish do?
 
-Work faster and make fewer mistakes. Publish is fussy. It won't put your work on
-npm unless everything looks right:
+Publish is fussy and hard to make happy, it will attempt to publish to npm only
+if:
 
-- The git working directory is clean ([#5][])
-- The current working directory has a `package.json` (run publish in the root of
-  the package you're publishing)
-- The package.json version is in the form `[major].[minor].[patch]-[dist-tag]`,
-  such as `1.2.3-latest` or `1.2.3-beta` (note the dist-tag *must* be there,
-  even if it's `latest`)
-- the HEAD of the current branch is described by a lightweight tag of the
-  form `v[major].[minor].[patch]-[dist-tag]` such as `v1.2.3-latest` or
-  `v1.2.3-beta` (note the `npm version` friendly 'v' at the start)
-- The HEAD tag version and `package.json` version match
-- The branch and dist-tag are permitted (more below)
+- The working directory is a clean git working directory (if you're local,
+  remember to push [#5][])
+- The working directory has a `package.json` (publish from the the root of
+  your package)
+- The package.json has a `publishConfig` with a `tag` that is a permitted
+  dist-tag (see below)
+- The package.json version is in the form `[major].[minor].[patch]`
+- the HEAD of the current branch is described by a lightweight tag of the form
+  `v[major].[minor].[patch]`
+- Both the tag version and `package.json` version match
+- The branch and dist-tag mapping is permitted (more below)
 
-If that all checks out, publish will ask for OTP details (you have set up 2FA
-haven't you?) and go ahead an publish.
+## npm version
+Note the `v` at the start of the required git tag? Publish works really well
+immediately after e.g. `npm version 1.2.3` which updates `package.json` and 
+creates a corresponding tag.
 
-## dist-tag/gbranch mapping
+## permitted dist-tags and branch mapping
 
-Out-of-the box, publish will let you publish with the:
+Publish only recongnises the dist-tags `latest`, `beta`, `next` or
+`[npmusername]`. It will only succeed when you are publishing the:
 - `latest` dist-tag from the `master` branch
 - `beta` or `next` dist-tags from the `develop` branch
 - `[npmusername]` dist-tag from any branch (but not in CI mode)
 
 For example, publish will successfully publish:
-- `v1.2.3-latest` from the `master` branch
-- `v1.2.3-next` from the `develop` branch
-- `v1.2.3-npmusername` from any branch if you're logged in to npm with `npmusername` (but not in CI mode)
+- version `1.2.3` tagged `latest` from the `master` branch
+- version `1.2.3` tagged `next` from the `develop` branch
+- version `1.2.3` tagged `npmusername` from any `branch` if you're logged in to
+  npm with npmusername (but not in CI mode)
 
-See [#1][] if you want to customise this mapping.
+See [#1][] if you want to customise permitted dist-tags and mappings.
 
 ## CI mode
 
 `publish --ci`
 
-In continuous integration mode publish will *not* stop to ask for an OTP, nor
-allow an `[npmusername]` dist-tag. This is what you want if, for example,
-publish is run from a Github action triggered when a new tag is pushed.
+The **--ci** flag means that publish will not look for an npm user to allow an
+`[npmusername]` dist-tag. 
 
-For publishing to succeed in CI, be sure you export an `NPM_TOKEN` (more on [npm tokens][]) with publish
-  permissions, and have an `.npmrc` file in the root of your package containing
-  the following.
+For publishing to succeed in CI, be sure you export an `NPM_TOKEN` (more on [npm
+  tokens][]) with publish permissions, and have an `.npmrc` file in the root of
+  your package containing the following.
+
   ```
   //registry.npmjs.org/:_authToken=${NPM_TOKEN}
   ```
