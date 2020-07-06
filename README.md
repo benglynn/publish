@@ -23,30 +23,27 @@ publish --ci
 Publish is fussy and hard to make happy, it will attempt to publish to npm only
 if:
 
-- The working directory is a clean git working directory (if your local,
-  remember to push! [#5][])
+- The working directory is a clean git working directory (if you're local,
+  remember to push [#5][])
 - The working directory has a `package.json` (publish from the the root of
-  the package you're publishing)
-- The package.json version is in the form `[major].[minor].[patch]`
+  your package)
 - The package.json has a `publishConfig` with a `tag` that is a permitted
   dist-tag (see below)
+- The package.json version is in the form `[major].[minor].[patch]`
 - the HEAD of the current branch is described by a lightweight tag of the form
-  `v[major].[minor].[patch]-[dist-tag]` such as `v1.2.3-latest` or `v1.2.3-beta`
-- The tag version and dist-tag match the `package.json` version and dist-tag
+  `v[major].[minor].[patch]`
+- Both the tag version and `package.json` version match
 - The branch and dist-tag mapping is permitted (more below)
 
 ## npm version
 Note the `v` at the start of the required git tag? Publish works really well
-immediately after e.g. `npm version 1.2.3-next` because that command creates the
-right tag for you.
+immediately after e.g. `npm version 1.2.3` which updates `package.json` and 
+creates a corresponding tag.
 
 ## permitted dist-tags and branch mapping
 
 Publish only recongnises the dist-tags `latest`, `beta`, `next` or
-`[npmusername]`. One of these must be defined as the `tag` property in
-`publishConfig`.
-
-Further, publish will only succeed when you are publishing the:
+`[npmusername]`. It will only succeed when you are publishing the:
 - `latest` dist-tag from the `master` branch
 - `beta` or `next` dist-tags from the `develop` branch
 - `[npmusername]` dist-tag from any branch (but not in CI mode)
@@ -54,8 +51,8 @@ Further, publish will only succeed when you are publishing the:
 For example, publish will successfully publish:
 - version `1.2.3` tagged `latest` from the `master` branch
 - version `1.2.3` tagged `next` from the `develop` branch
-- version `1.2.3` tagged `npmusername` from any `branch` if you're logged in to npm
-  with npmusername (but not in CI mode)
+- version `1.2.3` tagged `npmusername` from any `branch` if you're logged in to
+  npm with npmusername (but not in CI mode)
 
 See [#1][] if you want to customise permitted dist-tags and mappings.
 
