@@ -9,10 +9,10 @@ const jsonFileOrNull_ = (readFile) => (path) =>
     .then((contents) => JSON.parse(contents))
     .catch((e) => null);
 
-const parsePackage = (packageJson) => ({
-  packageVersion: packageJson.version,
+const parsePackage = (pkg) => ({
+  packageVersion: pkg === null ? null : pkg.version,
   packageTag:
-    (packageJson.publishConfig && packageJson.publishConfig.tag) || null,
+    pkg === null ? null : (pkg.publishConfig && pkg.publishConfig.tag) || null,
 });
 
 const gather = (exec, readFile, packagePath) => {

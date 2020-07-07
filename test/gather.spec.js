@@ -6,11 +6,18 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 describe("gather", function () {
-  const execDefaults = {
+  const successfulExecs = {
     "git status --porcelain": "M README.md",
     "git rev-parse --abbrev-ref HEAD": "master",
     "git describe --tags": "v1.2.3",
     "npm whoami": "benglynn",
+  };
+
+  const failingExecs = {
+    "git status --porcelain": new Error("ERROR"),
+    "git rev-parse --abbrev-ref HEAD": new Error("ERROR"),
+    "git describe --tags": new Error("ERROR"),
+    "npm whoami": new Error("ERROR"),
   };
 
   const execStub = (execs) => (command) => {
@@ -20,11 +27,15 @@ describe("gather", function () {
       : Promise.resolve({ stdout: eventually });
   };
 
-  const readFileDefaults = {
+  const successfulReadFiles = {
     "package.json": JSON.stringify({
       version: "1.0.0",
       publishConfig: { tag: "latest" },
     }),
+  };
+
+  const failingReadFiles = {
+    "package.json": new Error("ERROR"),
   };
 
   const readFileStub = (readFiles) => (file) => {
@@ -35,8 +46,8 @@ describe("gather", function () {
   };
 
   it("resolves with the expected stdout", function () {
-    const exec = execStub(execDefaults);
-    const readFile = readFileStub(readFileDefaults);
+    const exec = execStub(successfulExecs);
+    const readFile = readFileStub(successfulReadFiles);
     return expect(gather(exec, readFile, "package.json")).eventually.deep.equal(
       {
         gitStatus: "M README.md",
@@ -45,6 +56,21 @@ describe("gather", function () {
         npmUser: "benglynn",
         packageVersion: "1.0.0",
         packageTag: "latest",
+      }
+    );
+  });
+
+  it.only("resolves with null values for rejections", function () {
+    const exec = execStub(failingExecs);
+    const readFile = readFileStub(failingReadFiles);
+    return expect(gather(exec, readFile, "package.json")).eventually.deep.equal(
+      {
+        gitStatus: null,
+        gitBranch: null,
+        headTag: null,
+        npmUser: null,
+        packageVersion: null,
+        packageTag: null,
       }
     );
   });
