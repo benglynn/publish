@@ -1,5 +1,5 @@
 import { promisify } from "util";
-import { join as join_, join } from "path";
+import { join } from "path";
 import { readFile as readFile_ } from "fs";
 import { exec as exec_ } from "child_process";
 
@@ -14,11 +14,14 @@ const jsonFileOrNull_ = (readFile) => (path) =>
     .then((contents) => JSON.parse(contents))
     .catch((e) => null);
 
-const parsePackage = (pkg) => ({
-  packageVersion: pkg === null ? null : pkg.version,
-  packageTag:
-    pkg === null ? null : (pkg.publishConfig && pkg.publishConfig.tag) || null,
-});
+const parsePackage = (pkg) => {
+  return pkg === null
+    ? { packageVersion: null, packageTag: null }
+    : {
+        packageVersion: pkg.version,
+        packageTag: (pkg.publishConfig && pkg.publishConfig.tag) || null,
+      };
+};
 
 const gather = ({
   exec = promisify(exec_),
