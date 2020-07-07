@@ -48,30 +48,30 @@ describe("gather", function () {
   it("resolves with the expected stdout", function () {
     const exec = execStub(successfulExecs);
     const readFile = readFileStub(successfulReadFiles);
-    return expect(gather(exec, readFile, "package.json")).eventually.deep.equal(
-      {
-        gitStatus: "M README.md",
-        gitBranch: "master",
-        headTag: "v1.2.3",
-        npmUser: "benglynn",
-        packageVersion: "1.0.0",
-        packageTag: "latest",
-      }
-    );
+    const packagePath = "package.json";
+    const promise = gather({ exec, readFile, packagePath });
+    return expect(promise).eventually.deep.equal({
+      gitStatus: "M README.md",
+      gitBranch: "master",
+      headTag: "v1.2.3",
+      npmUser: "benglynn",
+      packageVersion: "1.0.0",
+      packageTag: "latest",
+    });
   });
 
-  it.only("resolves with null values for rejections", function () {
+  it("resolves with null values for rejections", function () {
     const exec = execStub(failingExecs);
     const readFile = readFileStub(failingReadFiles);
-    return expect(gather(exec, readFile, "package.json")).eventually.deep.equal(
-      {
-        gitStatus: null,
-        gitBranch: null,
-        headTag: null,
-        npmUser: null,
-        packageVersion: null,
-        packageTag: null,
-      }
-    );
+    const packagePath = "package.json";
+    const promise = gather({ exec, readFile, packagePath });
+    return expect(promise).eventually.deep.equal({
+      gitStatus: null,
+      gitBranch: null,
+      headTag: null,
+      npmUser: null,
+      packageVersion: null,
+      packageTag: null,
+    });
   });
 });
