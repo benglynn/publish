@@ -2,13 +2,13 @@ import gather_ from "./gather";
 
 const checkGitStatus = ({ gitStatus }) =>
   typeof gitStatus !== "string"
-    ? ["NO_GIT_STATUS"]
+    ? ["Unable to determine Git status"]
     : gitStatus === ""
     ? []
-    : ["NOT_GIT_CLEAN"];
+    : ["Working directory is not clean"];
 
 const checkGitBranch = ({ gitBranch }) =>
-  gitBranch === null ? ["NO_GIT_BRANCH"] : [];
+  gitBranch === null ? ["Unable to determine Git branch"] : [];
 
 const checks = [checkGitStatus, checkGitBranch];
 

@@ -22,27 +22,30 @@ describe.only("validate", function () {
     return expect(promise).eventually.deep.equals([]);
   });
 
-  it("resolves NO_GIT_STATUS if gitStatus is null", function () {
+  it("reports an inability to determine Git status", function () {
     const gather = gatherStub({ ...success, gitStatus: null });
-    const expected = ["NO_GIT_STATUS"];
+    const expected = ["Unable to determine Git status"];
     return expect(validate({ gather })).eventually.deep.equals(expected);
   });
 
-  it("resolves NOT_GIT_CLEAN if gitStatus is not an empty string", function () {
+  it("detects Git changes", function () {
     const gather = gatherStub({ ...success, gitStatus: "M README.md" });
-    const expected = ["NOT_GIT_CLEAN"];
+    const expected = ["Working directory is not clean"];
     return expect(validate({ gather })).eventually.deep.equals(expected);
   });
 
-  it("resolves NO_GIT_BRANCH if gitBranch is null", function () {
+  it("reports an inability to determine Git branch", function () {
     const gather = gatherStub({ ...success, gitBranch: null });
-    const expected = ["NO_GIT_BRANCH"];
+    const expected = ["Unable to determine Git branch"];
     return expect(validate({ gather })).eventually.deep.equals(expected);
   });
 
-  it("resolves with multiple errors", function () {
+  it("reports multiple errors", function () {
     const gather = gatherStub({ ...success, gitStatus: null, gitBranch: null });
-    const expected = ["NO_GIT_STATUS", "NO_GIT_BRANCH"];
+    const expected = [
+      "Unable to determine Git status",
+      "Unable to determine Git branch",
+    ];
     return expect(validate({ gather })).eventually.deep.equals(expected);
   });
 });
