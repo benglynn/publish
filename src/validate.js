@@ -1,5 +1,5 @@
 import gather_ from "./gather";
-import { valid, compare } from "semver";
+import { valid, compare, prerelease } from "semver";
 
 const checkGitStatus = ({ gitStatus }) =>
   typeof gitStatus !== "string"
@@ -11,7 +11,7 @@ const checkGitStatus = ({ gitStatus }) =>
 const checkGitBranch = ({ gitBranch }) =>
   gitBranch === null ? ["Unable to determine Git branch"] : [];
 
-const checkHeadTag = ({ headTag, packageVersion }) =>
+const checkHeadTag = ({ headTag }) =>
   typeof headTag !== "string"
     ? ["Unable to find a tag for HEAD"]
     : valid(headTag) === null
@@ -25,12 +25,19 @@ const checkPackageVersion = ({ packageVersion }) =>
     ? ["Version in package.json is not a valid semver"]
     : [];
 
-const checkVersionEquality = ({ headTag, packageVersion }) => {
-  return valid(headTag) !== null &&
-    valid(packageVersion) !== null &&
-    compare(headTag, packageVersion) !== 0
+const areBothSemvers = (v1, v2) => valid(v1) !== null && valid(v2) !== null;
+
+const areEqual = (v1, v2) => compare(v1, v2) === 0;
+
+const checkVersionEquality = ({ headTag: v1, packageVersion: v2 }) =>
+  areBothSemvers(v1, v2) && !areEqual(v1, v2)
     ? ["HEAD tag version and package.json version do not match"]
     : [];
+
+const checkBranchAndVersion = ({ distTag, npmUser, gitBranch }) => {
+  return gitBranch === null || distTag === npmUser || gitBranch === "master"
+    ? []
+    : ["Git branch must be 'master' for this version"];
 };
 
 const checks = [
@@ -39,11 +46,19 @@ const checks = [
   checkHeadTag,
   checkPackageVersion,
   checkVersionEquality,
+  checkBranchAndVersion,
 ];
 
-const validate = async ({ gather = gather_ } = {}) => {
-  const details = await gather();
-  return checks.reduce((errors, check) => errors.concat(check(details)), []);
+const distTagFrom = ({ headTag: v1, packageVersion: v2 }) =>
+  areBothSemvers(v1, v2) && areEqual(v1, v2)
+    ? (prerelease(v1) === null && "latest") || prerelease(v1)[0]
+    : null;
+
+const prepare = async ({ gather = gather_ } = {}) => {
+  const gathered = await gather();
+  const distTag = distTagFrom(gathered);
+  const details = { ...gathered, distTag };
+  return checks.reduce((all, check) => all.concat(check(details)), []);
 };
 
-export default validate;
+export default prepare;

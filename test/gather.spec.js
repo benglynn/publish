@@ -5,7 +5,7 @@ import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-describe.only("gather", function () {
+describe("gather", function () {
   const successfulExecs = {
     "git status --porcelain": "M README.md",
     "git rev-parse --abbrev-ref HEAD": "master",
