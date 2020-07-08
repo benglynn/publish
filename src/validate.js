@@ -1,6 +1,10 @@
 import gather_ from "./gather";
 import { valid, compare, prerelease } from "semver";
 
+const areBothSemvers = (v1, v2) => valid(v1) !== null && valid(v2) !== null;
+
+const areEqual = (v1, v2) => compare(v1, v2) === 0;
+
 const checkGitStatus = ({ gitStatus }) =>
   typeof gitStatus !== "string"
     ? ["Unable to determine Git status"]
@@ -25,10 +29,6 @@ const checkPackageVersion = ({ packageVersion }) =>
     ? ["Version in package.json is not a valid semver"]
     : [];
 
-const areBothSemvers = (v1, v2) => valid(v1) !== null && valid(v2) !== null;
-
-const areEqual = (v1, v2) => compare(v1, v2) === 0;
-
 const checkVersionEquality = ({ headTag: v1, packageVersion: v2 }) =>
   areBothSemvers(v1, v2) && !areEqual(v1, v2)
     ? ["HEAD tag version and package.json version do not match"]
@@ -40,6 +40,11 @@ const checkBranchAndVersion = ({ distTag, npmUser, gitBranch }) => {
     : ["Git branch must be 'master' for this version"];
 };
 
+const checkPackageTag = ({ packageTag, distTag }) =>
+  distTag === null || packageTag === null || packageTag === distTag
+    ? []
+    : [`Tag '${packageTag}' in package.json conflicts with tag '${distTag}'`];
+
 const checks = [
   checkGitStatus,
   checkGitBranch,
@@ -47,17 +52,17 @@ const checks = [
   checkPackageVersion,
   checkVersionEquality,
   checkBranchAndVersion,
+  checkPackageTag,
 ];
 
-const distTagFrom = ({ headTag: v1, packageVersion: v2 }) =>
+const distTag = ({ headTag: v1, packageVersion: v2 }) =>
   areBothSemvers(v1, v2) && areEqual(v1, v2)
     ? (prerelease(v1) === null && "latest") || prerelease(v1)[0]
     : null;
 
 const prepare = async ({ gather = gather_ } = {}) => {
   const gathered = await gather();
-  const distTag = distTagFrom(gathered);
-  const details = { ...gathered, distTag };
+  const details = { ...gathered, distTag: distTag(gathered) };
   return checks.reduce((all, check) => all.concat(check(details)), []);
 };
 

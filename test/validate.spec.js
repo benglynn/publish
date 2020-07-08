@@ -12,7 +12,7 @@ describe("validate", function () {
     headTag: "v1.2.3",
     npmUser: "benglynn",
     packageVersion: "1.2.3",
-    packageTag: "latest",
+    packageTag: null,
   };
 
   const gatherStub = (response) => () => Promise.resolve(response);
@@ -85,6 +85,12 @@ describe("validate", function () {
       headTag: "v1.2.3-benglynn.3",
     });
     return expect(prepare({ gather })).eventually.deep.equals([]);
+  });
+
+  it("reports when package tag conflicts with chosen dist tag", function () {
+    const gather = gatherStub({ ...success, packageTag: "beta" });
+    const expected = ["Tag 'beta' in package.json conflicts with tag 'latest'"];
+    return expect(prepare({ gather })).eventually.deep.equals(expected);
   });
 
   it("reports multiple errors", function () {
