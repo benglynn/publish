@@ -15,7 +15,7 @@ const cli = async () => {
     errors.map((error) => console.log("-", chalk.cyan(error)));
   } else {
     spinner.succeed(`Publishing ${details.packageVersion} @${details.distTag}`);
-    const args = ["publish", `--tag=${distTag}`];
+    const args = ["publish", `--tag=${details.distTag}`];
     spawn("npm", args, { stdio: "inherit" });
   }
 };
