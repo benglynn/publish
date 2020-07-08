@@ -1,11 +1,11 @@
-import prepare from "../src/validate";
+import prepare from "../src/prepare";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-describe("validate", function () {
+describe("prepare", function () {
   const success = {
     gitStatus: "",
     gitBranch: "master",
@@ -19,61 +19,79 @@ describe("validate", function () {
 
   it("resolves with no errors when all succeeds", function () {
     const promise = prepare({ gather: gatherStub(success) });
-    return expect(promise).eventually.deep.equals([]);
+    return expect(promise).eventually.property("errors").deep.equals([]);
   });
 
   it("reports when unable to determine Git status", function () {
     const gather = gatherStub({ ...success, gitStatus: null });
     const expected = ["Unable to determine Git status"];
-    return expect(prepare({ gather })).eventually.deep.equals(expected);
+    return expect(prepare({ gather }))
+      .eventually.property("errors")
+      .deep.equals(expected);
   });
 
   it("detects Git changes", function () {
     const gather = gatherStub({ ...success, gitStatus: "M README.md" });
     const expected = ["Working directory is not clean"];
-    return expect(prepare({ gather })).eventually.deep.equals(expected);
+    return expect(prepare({ gather }))
+      .eventually.property("errors")
+      .deep.equals(expected);
   });
 
   it("reports when unable to determine Git branch", function () {
     const gather = gatherStub({ ...success, gitBranch: null });
     const expected = ["Unable to determine Git branch"];
-    return expect(prepare({ gather })).eventually.deep.equals(expected);
+    return expect(prepare({ gather }))
+      .eventually.property("errors")
+      .deep.equals(expected);
   });
 
-  it("reports when unable to find a tag for HEAD", function () {
+  it("reports when unable to find a Git tag for HEAD", function () {
     const gather = gatherStub({ ...success, headTag: null });
-    const expected = ["Unable to find a tag for HEAD"];
-    return expect(prepare({ gather })).eventually.deep.equals(expected);
+    const expected = ["Unable to find a Git tag for HEAD"];
+    return expect(prepare({ gather }))
+      .eventually.property("errors")
+      .deep.equals(expected);
   });
 
   it("reports when HEAD tag is not a valid semver", function () {
     const gather = gatherStub({ ...success, headTag: "banana" });
     const expected = ["Head tag is not a valid semver"];
-    return expect(prepare({ gather })).eventually.deep.equals(expected);
+    return expect(prepare({ gather }))
+      .eventually.property("errors")
+      .deep.equals(expected);
   });
 
   it("reports when unable to determine package version", function () {
     const gather = gatherStub({ ...success, packageVersion: null });
     const expected = ["Unable to determine package.json version"];
-    return expect(prepare({ gather })).eventually.deep.equals(expected);
+    return expect(prepare({ gather }))
+      .eventually.property("errors")
+      .deep.equals(expected);
   });
 
   it("reports when package.json version is not a valid semver", function () {
     const gather = gatherStub({ ...success, packageVersion: "banana" });
     const expected = ["Version in package.json is not a valid semver"];
-    return expect(prepare({ gather })).eventually.deep.equals(expected);
+    return expect(prepare({ gather }))
+      .eventually.property("errors")
+      .deep.equals(expected);
   });
 
   it("reports when package.json semver and HEAD tag semver do not match", function () {
     const gather = gatherStub({ ...success, headTag: "1.2.4" });
     const expected = ["HEAD tag version and package.json version do not match"];
-    return expect(prepare({ gather })).eventually.deep.equals(expected);
+    return expect(prepare({ gather }))
+      .eventually.property("errors")
+      .deep.equals(expected);
   });
 
   it("reports when branch is not master", function () {
     const gather = gatherStub({ ...success, gitBranch: "develop" });
     const expected = ["Git branch must be 'master' for this version"];
-    return expect(prepare({ gather })).eventually.deep.equals(expected);
+    return expect(prepare({ gather }))
+      .eventually.property("errors")
+      .deep.equals(expected);
   });
 
   it("does not report when branch is not master but semver matches npm user", function () {
@@ -84,13 +102,17 @@ describe("validate", function () {
       packageVersion: "1.2.3-benglynn.3",
       headTag: "v1.2.3-benglynn.3",
     });
-    return expect(prepare({ gather })).eventually.deep.equals([]);
+    return expect(prepare({ gather }))
+      .eventually.property("errors")
+      .deep.equals([]);
   });
 
   it("reports when package tag conflicts with chosen dist tag", function () {
     const gather = gatherStub({ ...success, packageTag: "beta" });
     const expected = ["Tag 'beta' in package.json conflicts with tag 'latest'"];
-    return expect(prepare({ gather })).eventually.deep.equals(expected);
+    return expect(prepare({ gather }))
+      .eventually.property("errors")
+      .deep.equals(expected);
   });
 
   it("reports multiple errors", function () {
@@ -105,6 +127,8 @@ describe("validate", function () {
       "Unable to determine Git branch",
       "Version in package.json is not a valid semver",
     ];
-    return expect(prepare({ gather })).eventually.deep.equals(expected);
+    return expect(prepare({ gather }))
+      .eventually.property("errors")
+      .deep.equals(expected);
   });
 });
