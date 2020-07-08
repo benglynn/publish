@@ -1,6 +1,6 @@
 {
   "name": "@benglynn/publish",
-  "version": "1.0.1",
+  "version": "1.0.2-benglynn.0",
   "description": "Publish npm packages safely",
   "main": "index.js",
   "bin": {
