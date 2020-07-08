@@ -2,76 +2,47 @@
 
 # publish
 
-Safety checks that save time and help your team publish to npm consistently.
+Safe and consistent npm publishing. Publish checks you're following its highly
+opinionated publishing rules before choosing a distribution tag and attempting a
+release to npm for you. If something looks wrong, it tells you what to fix.
 
 ```bash
-# install globally
-npm install -g @benglynn/publish
-
-# or as part of your package
+# add publish to your package
 npm install --save-dev @benglynn/publish
 
-# safely publish locally
+# publish safely even if your tired
 publish
-
-# or safely publish from CI when a tag is pushed
-publish --ci
 ```
 
-## What does publish do?
+Run publish from the root of a clean working directory where HEAD is described
+by a tag that is a valid [semver][] and matches the version in package.json. If
+the version and git branch are a sensible pair, publish chooses a dist-tag and
+attempts to publish.
 
-Publish is fussy and hard to make happy, it will attempt to publish to npm only
-if:
+If the version has no pre-release (e.g. `1.2.3`) publishing is attempted with
+the tag `@latest`. If the version has a pre-release (e.g. `1.2.3-rc.3`) then the
+first part of the pre-release used as the dist-tag (e.g. `@rc`).
 
-- The working directory is a clean git working directory (if you're local,
-  remember to push [#5][])
-- The working directory has a `package.json` (publish from the the root of
-  your package)
-- The package.json has a `publishConfig` with a `tag` that is a permitted
-  dist-tag (see below)
-- The package.json version is in the form `[major].[minor].[patch]`
-- the HEAD of the current branch is described by a lightweight tag of the form
-  `v[major].[minor].[patch]`
-- Both the tag version and `package.json` version match
-- The branch and dist-tag mapping is permitted (more below)
+Publishing is only attempted from the `master` branch. There is however one
+exeption, if the version is a pre-release, and the pre-release starts with the
+npm name of the (`npm login`) npm user, publishing is attempted regardless of
+whether the branch is `master`. For example I can publish `1.2.3-benglynn.3`
+locally from any branch.
 
-## npm version
-Note the `v` at the start of the required git tag? Publish works really well
-immediately after e.g. `npm version 1.2.3` which updates `package.json` and 
-creates a corresponding tag.
+Note that publish chooses a tag for you, if package.json specifies a different
+tag (in `publishConfig.tag`), it won't publish. If your team use publish to
+manage safe publishing, consider removing this config.
 
-## permitted dist-tags and branch mapping
+## Publishing in CI
 
-Publish only recongnises the dist-tags `latest`, `beta`, `next` or
-`[npmusername]`. It will only succeed when you are publishing the:
-- `latest` dist-tag from the `master` branch
-- `beta` or `next` dist-tags from the `develop` branch
-- `[npmusername]` dist-tag from any branch (but not in CI mode)
-
-For example, publish will successfully publish:
-- version `1.2.3` tagged `latest` from the `master` branch
-- version `1.2.3` tagged `next` from the `develop` branch
-- version `1.2.3` tagged `npmusername` from any `branch` if you're logged in to
-  npm with npmusername (but not in CI mode)
-
-See [#1][] if you want to customise permitted dist-tags and mappings.
-
-## CI mode
-
-`publish --ci`
-
-The **--ci** flag means that publish will not look for an npm user to allow an
-`[npmusername]` dist-tag. 
-
-For publishing to succeed in CI, be sure you export an `NPM_TOKEN` (more on [npm
-  tokens][]) with publish permissions, and have an `.npmrc` file in the root of
-  your package containing the following.
+In CI you might configure publish to respond when tags of the right pattern are
+ pushed to master. For publishing to succeed in CI, be sure you export an
+ `NPM_TOKEN` (more on [npm tokens][]) with publish permissions, and have an
+ `.npmrc` file in the root of your package containing the following.
 
   ```
   //registry.npmjs.org/:_authToken=${NPM_TOKEN}
   ```
 
+[semver]: https://github.com/npm/node-semver#readme
 [npm tokens]: https://docs.npmjs.com/about-authentication-tokens
-
-[#1]: https://github.com/benglynn/publish/issues/1
-[#5]: https://github.com/benglynn/publish/issues/5

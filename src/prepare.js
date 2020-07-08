@@ -1,108 +1,70 @@
-import { promisify } from "util";
-import { join as join_ } from "path";
-import { readFile as readFile_ } from "fs";
-import { exec as exec_ } from "child_process";
+import gather_ from "./gather";
+import { valid, compare, prerelease } from "semver";
 
-const getIsClean = (exec) => {
-  return exec("git status --porcelain")
-    .then(({ stdout }) => {
-      if (stdout !== "") throw new Error("not clean");
-      return true;
-    })
-    .catch((e) => {
-      throw new Error("CLEAN_CHECK_FAIL");
-    });
+const areBothSemvers = (v1, v2) => valid(v1) !== null && valid(v2) !== null;
+
+const areEqual = (v1, v2) => compare(v1, v2) === 0;
+
+const checkGitStatus = ({ gitStatus }) =>
+  typeof gitStatus !== "string"
+    ? ["Unable to determine Git status"]
+    : gitStatus === ""
+    ? []
+    : ["Working directory is not clean"];
+
+const checkGitBranch = ({ gitBranch }) =>
+  gitBranch === null ? ["Unable to determine Git branch"] : [];
+
+const checkHeadTag = ({ headTag }) =>
+  typeof headTag !== "string"
+    ? ["Unable to find a Git tag for HEAD"]
+    : valid(headTag) === null
+    ? ["Head tag is not a valid semver"]
+    : [];
+
+const checkPackageVersion = ({ packageVersion }) =>
+  packageVersion === null
+    ? ["Unable to determine package.json version"]
+    : valid(packageVersion) === null
+    ? ["Version in package.json is not a valid semver"]
+    : [];
+
+const checkVersionEquality = ({ headTag: v1, packageVersion: v2 }) =>
+  areBothSemvers(v1, v2) && !areEqual(v1, v2)
+    ? ["HEAD tag version and package.json version do not match"]
+    : [];
+
+const checkBranchAndVersion = ({ distTag, npmUser, gitBranch }) => {
+  return gitBranch === null || distTag === npmUser || gitBranch === "master"
+    ? []
+    : ["Git branch must be 'master' for this version"];
 };
 
-const getHead = (exec) => {
-  return exec("git describe --tags")
-    .then(({ stdout }) => {
-      const match = stdout.trim().match(/^v(?<version>\d+\.\d+\.\d+)$/);
-      if (!match) throw new Error("no match");
-      return { headVersion: match.groups.version };
-    })
-    .catch((e) => {
-      throw new Error("NO_VALID_TAG");
-    });
-};
+const checkPackageTag = ({ packageTag, distTag }) =>
+  distTag === null || packageTag === null || packageTag === distTag
+    ? []
+    : [`Tag '${packageTag}' in package.json conflicts with tag '${distTag}'`];
 
-const getNpmUser = async (exec) => {
-  return exec("npm whoami")
-    .then(({ stdout }) => stdout.trim())
-    .catch(() => {
-      throw new Error("NO_NPM_USER");
-    });
-};
+const checks = [
+  checkGitStatus,
+  checkGitBranch,
+  checkHeadTag,
+  checkPackageVersion,
+  checkVersionEquality,
+  checkBranchAndVersion,
+  checkPackageTag,
+];
 
-const getPackageJson = async (readFile, join, cwd) => {
-  try {
-    const pkg = JSON.parse(await readFile(join(cwd, "package.json"), "utf8"));
-    if (!/^\d+\.\d+\.\d+$/.test(pkg.version)) throw new Error("malformed");
-    const pkgTag = (pkg.publishConfig && pkg.publishConfig.tag) || null;
-    if (pkgTag === null) throw new Error("no tag");
-    return {
-      pkgTag,
-      pkgName: pkg.name,
-      pkgVersion: pkg.version,
-    };
-  } catch (e) {
-    if (e.message === "malformed") throw new Error("PACKAGE_VERSION_MALFORMED");
-    if (e.message === "no tag") throw new Error("NO_PACKAGE_TAG");
-    throw new Error("NO_PACKAGE_JSON");
-  }
-};
+const distTag = ({ headTag: v1, packageVersion: v2 }) =>
+  areBothSemvers(v1, v2) && areEqual(v1, v2)
+    ? (prerelease(v1) === null && "latest") || prerelease(v1)[0]
+    : null;
 
-const getBranch = async (exec) => {
-  return exec("git rev-parse --abbrev-ref HEAD")
-    .then(({ stdout }) => stdout.trim())
-    .catch(() => {
-      throw new Error("NO_BRANCH");
-    });
-};
-
-const validate = (details) => {
-  const { ci, pkgVersion, headVersion, pkgTag, npmUser, branch } = details;
-  const npmUserMap = ci ? null : { [npmUser]: /.*/ };
-  const tagBranchMap = {
-    latest: "master",
-    beta: "develop",
-    next: "develop",
-    ...npmUserMap,
-  };
-  const invalidError =
-    (pkgVersion !== headVersion && "VERSION_MISMATCH") ||
-    (!Object.keys(tagBranchMap).includes(pkgTag) && "TAG_PROHIBITED") ||
-    (null === branch.match(tagBranchMap[pkgTag]) && "BRANCH_PROHIBITED") ||
-    null;
-  if (invalidError) throw new Error(invalidError);
-  return details;
-};
-
-const getDetails = async (ci, readFile, join, cwd, exec) => {
-  const [
-    { pkgName, pkgVersion, pkgTag },
-    { headVersion },
-    npmUser,
-    branch,
-  ] = await Promise.all([
-    getPackageJson(readFile, join, cwd),
-    getHead(exec),
-    ci ? null : getNpmUser(exec),
-    getBranch(exec),
-    getIsClean(exec),
-  ]);
-  return { ci, pkgName, pkgVersion, pkgTag, headVersion, npmUser, branch };
-};
-
-const prepare = async ({
-  ci = false,
-  join = join_,
-  readFile = promisify(readFile_),
-  exec = promisify(exec_),
-  cwd = process.cwd(),
-} = {}) => {
-  const details = await getDetails(ci, readFile, join, cwd, exec);
-  return validate(details);
+const prepare = async ({ gather = gather_ } = {}) => {
+  const gathered = await gather();
+  const details = { ...gathered, distTag: distTag(gathered) };
+  const errors = checks.reduce((all, check) => all.concat(check(details)), []);
+  return { details, errors };
 };
 
 export default prepare;

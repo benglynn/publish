@@ -1,28 +1,23 @@
-import arg from "arg";
 import ora from "ora";
-import errors from "./errors.json";
 import prepare from "./prepare";
 import { spawn } from "child_process";
+import chalk from "chalk";
 
-const parseArgs = (args) => {
-  const parsed = arg({ "--ci": Boolean }, { argv: args.slice(2) });
-  return { ci: parsed["--ci"] || false };
-};
-
-const cli = (rawArgs) => {
+const cli = async () => {
   const spinner = ora("Preparing").start();
-  const args = parseArgs(rawArgs);
-  prepare(args)
-    .then((details) => {
-      const { packageName, headVersion, pkgTag } = details;
-      spinner.succeed(`Publish ${packageName} v${headVersion} @${pkgTag}`);
-      spawn("npm", ["publish"], { stdio: "inherit" });
-    })
-    .catch((error) => {
-      const message = errors[error.message] || error.toString();
-      spinner.fail(message);
-      process.exit(1);
-    });
+  const { details, errors } = await prepare();
+  if (errors.length > 0) {
+    const message =
+      errors.length === 1
+        ? "There was a problem"
+        : `There were ${errors.length} problems`;
+    spinner.fail(chalk.bold(message));
+    errors.map((error) => console.log("-", chalk.cyan(error)));
+  } else {
+    spinner.succeed(`Publishing ${details.packageVersion} @${details.distTag}`);
+    const args = ["publish", `--tag=${distTag}`];
+    spawn("npm", args, { stdio: "inherit" });
+  }
 };
 
 export default cli;

@@ -21,8 +21,7 @@
     "url": "git+https://github.com/benglynn/publish.git"
   },
   "publishConfig": {
-    "access": "public",
-    "tag": "benglynn"
+    "access": "public"
   },
   "author": "Ben Glynn",
   "license": "UNLICENSED",
@@ -37,8 +36,9 @@
     "sinon": "^9.0.2"
   },
   "dependencies": {
-    "arg": "^4.1.3",
+    "chalk": "^4.1.0",
     "esm": "^3.2.25",
-    "ora": "^4.0.4"
+    "ora": "^4.0.4",
+    "semver": "^7.3.2"
   }
 }
