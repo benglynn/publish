@@ -1,6 +1,6 @@
 import ora from "ora";
 import prepare from "./prepare";
-import { spawnSync } from "child_process";
+import { spawn } from "child_process";
 import chalk from "chalk";
 
 const cli = async () => {
@@ -19,7 +19,7 @@ const cli = async () => {
         `Publishing ${details.packageVersion} @${details.distTag}`
       );
       const args = ["publish", `--tag=${details.distTag}`];
-      const npm = spawnSync("npm", args, { stdio: "inherit" });
+      const npm = spawn("npm", args);
       npm.on("close", (code) => console.log("closed with ${code}"));
     }
   } catch (e) {
