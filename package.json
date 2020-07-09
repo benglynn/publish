@@ -1,6 +1,6 @@
 {
   "name": "@benglynn/publish",
-  "version": "1.0.5-benglynn.4",
+  "version": "1.0.5-benglynn.3",
   "description": "Publish npm packages safely",
   "main": "./src/api.js",
   "bin": {
@@ -10,7 +10,8 @@
     "pretest": "npm run lint",
     "test": "mocha --require esm",
     "watch-test": "mocha --watch --require esm",
-    "lint": "eslint  --ignore-path .gitignore ."
+    "lint": "eslint  --ignore-path .gitignore .",
+    "start": "$npm_package_bin_xpublish"
   },
   "keywords": [
     "npm",
