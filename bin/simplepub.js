@@ -2,4 +2,4 @@
 
 const { spawn } = require("child_process");
 
-spawn("npm", ["publish"], { stdio: "inherit" });
+spawn("npm", ["publish", "--tag", "benglynn"], { stdio: "inherit" });
