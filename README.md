@@ -51,8 +51,8 @@ In CI you might configure publish to respond when tags of the right pattern are
 npm test
 npm watch-test
 
-# publish publish using publish
-npm publish
+# publish publish with itself
+npm start
 ```
 
 [semver]: https://github.com/npm/node-semver#readme
