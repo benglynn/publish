@@ -4,14 +4,14 @@
   "description": "Publish npm packages safely",
   "main": "index.js",
   "bin": {
-    "publish": "index.js"
+    "safe-publish": "index.js"
   },
   "scripts": {
     "pretest": "npm run lint",
     "test": "mocha --require esm",
     "watch-test": "mocha --watch --require esm",
     "lint": "eslint  --ignore-path .gitignore .",
-    "safe-publish": "node index.js"
+    "publish": "node index.js"
   },
   "keywords": [
     "npm",

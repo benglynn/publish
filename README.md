@@ -11,7 +11,7 @@ release to npm for you. If something looks wrong, it tells you what to fix.
 npm install --save-dev @benglynn/publish
 
 # publish safely even if your tired
-npx publish
+npx safe-publish
 ```
 
 Run publish from the root of a clean working directory where HEAD is described
