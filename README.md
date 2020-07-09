@@ -1,39 +1,41 @@
 ![Test](https://github.com/benglynn/publish/workflows/Test/badge.svg)
 
-# publish
+# @benglynn/publish
 
-Safe and consistent npm publishing. Publish checks you're following its highly
-opinionated publishing rules before choosing a distribution tag and attempting a
-release to npm for you. If something looks wrong, it tells you what to fix.
+Tools for npm package publishers.
 
-Install with `npm install --save-dev @benglynn/publish`. You can now publish
-safely with `npx publish` or create an npm script to `publish`.
+```bash
+npm install --save-dev @benglynn/publish
+```
 
-Run publish from the root of a clean working directory where HEAD is described
-by a tag that is a valid [semver][] and matches the version in package.json. If
-the version and git branch are a sensible pair, publish chooses a dist-tag and
-attempts to publish.
+## safepublish
 
-If the version has no pre-release (e.g. `1.2.3`) publishing is attempted with
-the tag `@latest`. If the version has a pre-release (e.g. `1.2.3-rc.3`) then the
-first part of the pre-release used as the dist-tag (e.g. `@rc`).
+The safepublish script in your node bin (e.g. `npx safepublish`) hecks the
+current directory is clean and that HEAD is described by a tag that is a valid
+[semver][] and that matches the version in package.json. If the version and git
+branch are a sensible pair, safepublish chooses a distribution tag for you and
+attempts to publish. 
 
-Publishing is only attempted from the `master` branch. There is however one
-exeption, if the version is a pre-release, and the pre-release starts with the
-npm name of the (`npm whoami`) npm user, publishing is attempted regardless of
-whether the branch is `master`. For example I can publish `1.2.3-benglynn.3`
-locally from any branch.
+All publishing is dist-tagged. If the version has no pre-release (e.g. `1.2.3`)
+the dist-tag is `@latest`. If the version has a pre-release (e.g. `1.2.3-rc.3`)
+the dist-tag is the first part of the pre-release (e.g. `@rc`).
 
-Note that publish chooses a tag for you, if package.json specifies a different
-tag (in `publishConfig.tag`), it won't publish. If your team use publish to
-manage safe publishing, consider removing this config.
+Publishing is only attempted from the `master` branch.
 
-## Publishing in CI
+### Run safepublish locally
 
-In CI you might configure publish to respond when tags of the right pattern are
- pushed to master. For publishing to succeed in CI, be sure you export an
- `NPM_TOKEN` (more on [npm tokens][]) with publish permissions, and have an
- `.npmrc` file in the root of your package containing the following.
+Run safepublish from the root of your package on the master branch. 
+
+You can publish personally tagged releases from any branch. For example I can
+publish `1.2.3-benglynn.3` locally from any branch. That's because the version
+is a pre-release which starts with my (`npm whoami`) username.
+
+### Trigger safepublish In CI
+
+In CI configure publish to respond when tags with a semver pattern are pushed to
+ master.  For publishing to succeed in CI, be sure you export an `NPM_TOKEN`
+ (more on [npm tokens][]) with publish permissions, and have an `.npmrc` file in
+ the root of your package containing the following.
 
   ```
   //registry.npmjs.org/:_authToken=${NPM_TOKEN}
@@ -46,8 +48,8 @@ In CI you might configure publish to respond when tags of the right pattern are
 npm test
 npm watch-test
 
-# publish publish with itself
-npm start
+# safepublish self
+npm run safepublish
 ```
 
 [semver]: https://github.com/npm/node-semver#readme

@@ -4,16 +4,14 @@
   "description": "Publish npm packages safely",
   "main": "./src/api.js",
   "bin": {
-    "safepublish": "./bin/publish.js",
-    "simplepub": "./bin/simplepub.js"
+    "safepublish": "./bin/safepublish.js"
   },
   "scripts": {
     "pretest": "npm run lint",
     "test": "mocha --require esm",
     "watch-test": "mocha --watch --require esm",
     "lint": "eslint  --ignore-path .gitignore .",
-    "start": "$npm_package_bin_safepublish",
-    "simplepub": "$npm_package_bin_simplepub"
+    "safepublish": "$npm_package_bin_safepublish"
   },
   "keywords": [
     "npm",
