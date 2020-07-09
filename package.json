@@ -2,16 +2,16 @@
   "name": "@benglynn/publish",
   "version": "1.0.5-benglynn.0",
   "description": "Publish npm packages safely",
-  "main": "index.js",
+  "main": "./src/api.js",
   "bin": {
-    "safe-publish": "index.js"
+    "publish": "./bin/publish.js"
   },
   "scripts": {
     "pretest": "npm run lint",
     "test": "mocha --require esm",
     "watch-test": "mocha --watch --require esm",
     "lint": "eslint  --ignore-path .gitignore .",
-    "publish": "node index.js"
+    "publish": "node ./bin/publish.js"
   },
   "keywords": [
     "npm",
