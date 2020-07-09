@@ -4,14 +4,14 @@
   "description": "Publish npm packages safely",
   "main": "./src/api.js",
   "bin": {
-    "publish": "./bin/publish.js"
+    "xpublish": "./bin/publish.js"
   },
   "scripts": {
     "pretest": "npm run lint",
     "test": "mocha --require esm",
     "watch-test": "mocha --watch --require esm",
     "lint": "eslint  --ignore-path .gitignore .",
-    "publish": "node ./bin/publish.js"
+    "publish": "./bin/publish.js"
   },
   "keywords": [
     "npm",
