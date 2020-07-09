@@ -6,13 +6,8 @@ Safe and consistent npm publishing. Publish checks you're following its highly
 opinionated publishing rules before choosing a distribution tag and attempting a
 release to npm for you. If something looks wrong, it tells you what to fix.
 
-```bash
-# add publish to your package
-npm install --save-dev @benglynn/publish
-
-# publish safely even if your tired
-npm publish
-```
+Install with `npm install --save-dev @benglynn/publish`. You can now publish
+safely with `npx publish` or create an npm script to `publish`.
 
 Run publish from the root of a clean working directory where HEAD is described
 by a tag that is a valid [semver][] and matches the version in package.json. If
