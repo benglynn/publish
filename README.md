@@ -11,7 +11,7 @@ release to npm for you. If something looks wrong, it tells you what to fix.
 npm install --save-dev @benglynn/publish
 
 # publish safely even if your tired
-npx safe-publish
+npm publish
 ```
 
 Run publish from the root of a clean working directory where HEAD is described
@@ -43,6 +43,17 @@ In CI you might configure publish to respond when tags of the right pattern are
   ```
   //registry.npmjs.org/:_authToken=${NPM_TOKEN}
   ```
+
+## Developing publish
+
+```bash
+# testing
+npm test
+npm watch-test
+
+# publish publish using publish
+npm publish
+```
 
 [semver]: https://github.com/npm/node-semver#readme
 [npm tokens]: https://docs.npmjs.com/about-authentication-tokens

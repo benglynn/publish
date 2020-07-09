@@ -10,8 +10,7 @@
     "pretest": "npm run lint",
     "test": "mocha --require esm",
     "watch-test": "mocha --watch --require esm",
-    "lint": "eslint  --ignore-path .gitignore .",
-    "ypublish": "./bin/publish.js"
+    "lint": "eslint  --ignore-path .gitignore ."
   },
   "keywords": [
     "npm",
