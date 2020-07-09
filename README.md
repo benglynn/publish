@@ -25,7 +25,7 @@ first part of the pre-release used as the dist-tag (e.g. `@rc`).
 
 Publishing is only attempted from the `master` branch. There is however one
 exeption, if the version is a pre-release, and the pre-release starts with the
-npm name of the (`npm login`) npm user, publishing is attempted regardless of
+npm name of the (`npm whoami`) npm user, publishing is attempted regardless of
 whether the branch is `master`. For example I can publish `1.2.3-benglynn.3`
 locally from any branch.
 
