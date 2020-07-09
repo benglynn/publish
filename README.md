@@ -17,7 +17,7 @@ valid [semver][] and a match for the version in package.json. Also that the
 branch is okay for that version.
 
 If everything checks out, safepublish chooses an appropriate dist-tag and
-attempts to publish. If not, it tells you what to fix. Failure always exists
+attempts to publish. If not, it tells you what to fix. Failure always exits
 with a failure code.
 
 All publishing is dist-tagged. If the version has no pre-release (e.g. `1.2.3`)
